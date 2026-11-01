@@ -361,6 +361,7 @@ document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go)
 $("#env").onclick=()=>{
   const e=$("#env"); if(e.classList.contains("open"))return;
   e.classList.add("open"); confetti(90);
+  if(!audio.playing) toggle();   // start the song right as the envelope opens (tap = allowed to play sound)
   setTimeout(()=>go("s-card"),1500);
 };
 

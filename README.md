@@ -71,7 +71,7 @@ After any edit, wait a minute and hard-refresh the page (Ctrl+Shift+R, or Cmd+Sh
 
 ## Notes
 
-- Music only starts after a tap. Browsers block sound until the visitor interacts with the page.
+- The song starts when the envelope is opened. Browsers block sound until the visitor taps something, so it can't start before that.
 - Anyone with the link can see the page, so only use photos you're happy to share.
 
 ## License
