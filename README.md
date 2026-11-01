@@ -14,7 +14,7 @@ It's a single `index.html` file with no build step, no framework and nothing to 
 4. **Bouquet:** three flowers that flip over to reveal birthday wishes
 5. **Letter:** a final heartfelt letter, signed by you
 
-The default song is a romantic slow-waltz version of *Happy Birthday*, generated in the browser. It needs no audio file and has no copyright issues. You can swap in your own `.mp3` instead.
+You can play your own `.mp3`, or use the built-in romantic slow-waltz version of *Happy Birthday*, which is generated in the browser and needs no audio file.
 
 ## Make your own (5 minutes, no coding needed)
 
@@ -39,7 +39,7 @@ Open `index.html`, click the ✏️ pencil icon and find the section marked **`E
 | `name`     | What you call them, shown on the card and letter |
 | `from`     | Your signature at the end of the letter |
 | `message`  | The message on the birthday card |
-| `songUrl`  | A direct link to an `.mp3`. Leave it `""` to use the built-in song |
+| `songUrl`  | Your song: an `.mp3` uploaded to the `audio` folder (e.g. `"audio/song.mp3"`) or a direct link. Use `""` for the built-in song |
 | `songNote` | The little handwritten note under the song |
 | `memories` | Album photos and captions, e.g. `photo:"photos/1.jpg"` |
 | `wishes`   | The 3 notes hidden inside the flowers |
@@ -76,4 +76,6 @@ After any edit, wait a minute and hard-refresh the page (Ctrl+Shift+R, or Cmd+Sh
 
 ## License
 
-[MIT](LICENSE). Feel free to use, change and share it. Make someone smile ♡
+The code is [MIT](LICENSE). Feel free to use, change and share it. Make someone smile ♡
+
+The song in `audio/song.mp3` is **not** covered by this license. It was added for a personal gift, so please replace it with your own song (or set `songUrl: ""` for the built-in tune) when you make your copy.
