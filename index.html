@@ -368,27 +368,54 @@ $("#env").onclick=()=>{
 const PLAY_ICON='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>';
 const PAUSE_ICON='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/></svg>';
 const audio={started:false,playing:false,ctx:null,el:null,t0:0,next:0,timer:null};
-// Happy Birthday (public domain) — [note frequency, beats]
-const N={G4:392,A4:440,B4:493.88,C5:523.25,D5:587.33,E5:659.25,F5:698.46,G5:783.99};
-const TUNE=[["G4",.75],["G4",.25],["A4",1],["G4",1],["C5",1],["B4",2],
-            ["G4",.75],["G4",.25],["A4",1],["G4",1],["D5",1],["C5",2],
-            ["G4",.75],["G4",.25],["G5",1],["E5",1],["C5",1],["B4",1],["A4",2],
-            ["F5",.75],["F5",.25],["E5",1],["C5",1],["D5",1],["C5",3]];
-const BEAT=.46, LOOP=(TUNE.reduce((s,n)=>s+n[1],0)+2)*BEAT;
-const BASS=[[0,130.81],[6,98],[12,130.81],[16,174.61],[19,174.61],[21,130.81],[23,98],[24,130.81]];
-function tone(f,t,dur,gain){const c=audio.ctx,o=c.createOscillator(),o2=c.createOscillator(),g=c.createGain();
-  o.type="sine";o.frequency.value=f;o2.type="triangle";o2.frequency.value=f*2;
-  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+.01);g.gain.exponentialRampToValueAtTime(.0008,t+dur);
-  const g2=c.createGain();g2.gain.value=.25;o.connect(g);o2.connect(g2);g2.connect(g);g.connect(audio.master);
-  o.start(t);o2.start(t);o.stop(t+dur+.05);o2.stop(t+dur+.05);}
-function scheduleLoop(t){let b=0;TUNE.forEach(([n,d])=>{tone(N[n],t+b*BEAT,Math.max(.9,d*BEAT*1.6),.22);b+=d;});
-  let acc=0,starts=[];TUNE.forEach(([,d])=>{starts.push(acc);acc+=d;});
-  BASS.forEach(([i,f])=>tone(f,t+starts[i]*BEAT,1.6,.12));}
+// Romantic slow-waltz arrangement of Happy Birthday (public-domain melody), 3/4 time.
+// Piano-like melody + arpeggiated chords + soft pad, through a gentle hall reverb.
+const BEAT=.62, LOOP_BEATS=33, LOOP=LOOP_BEATS*BEAT;
+const mf=m=>440*Math.pow(2,(m-69)/12);
+// melody: [startBeat, midi, beats]; pickup on beat 5, song bar 1 starts at beat 6
+const MEL=(()=>{const n=[[67,.75],[67,.25],[69,1],[67,1],[72,1],[71,2],[67,.75],[67,.25],[69,1],[67,1],[74,1],[72,2],
+  [67,.75],[67,.25],[79,1],[76,1],[72,1],[71,1],[69,1],[77,.75],[77,.25],[76,1],[72,1],[74,1],[72,4]];
+  let b=5;return n.map(([m,d])=>{const r=[b,m,d];b+=d;return r;});})();
+const CH={Fmaj7:[41,[53,57,60,64]],G7:[43,[55,59,62,65]],C:[48,[55,60,64,67]],C7:[48,[55,58,64,67]],
+  F:[41,[53,57,60,65]],Cmaj7:[48,[55,59,64,67]]};
+// chord timeline: [startBeat, chord]
+const PROG=[[0,"Fmaj7"],[3,"G7"],[6,"C"],[9,"G7"],[15,"C"],[18,"C7"],[21,"F"],[24,"C"],[26,"G7"],[27,"C"],[30,"Cmaj7"]];
+const chordAt=b=>{let c=PROG[0][1];PROG.forEach(([s,n])=>{if(b>=s)c=n;});return CH[c];};
+function voice(f,t,dur,gain,{type="sine",attack=.01,harm=.18,vib=0}={}){
+  const c=audio.ctx,g=c.createGain(),o=c.createOscillator(),o2=c.createOscillator(),g2=c.createGain();
+  o.type=type;o.frequency.value=f;o2.type="sine";o2.frequency.value=f*2;g2.gain.value=harm;
+  if(vib){const l=c.createOscillator(),lg=c.createGain();l.frequency.value=5;lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(vib,t+.5);
+    l.connect(lg);lg.connect(o.detune);lg.connect(o2.detune);l.start(t);l.stop(t+dur+.1);}
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+attack);g.gain.exponentialRampToValueAtTime(.0006,t+dur);
+  o.connect(g);o2.connect(g2);g2.connect(g);g.connect(audio.master);
+  o.start(t);o2.start(t);o.stop(t+dur+.05);o2.stop(t+dur+.05);
+}
+function pad(notes,t,dur){
+  const c=audio.ctx;notes.forEach(m=>{const o=c.createOscillator(),g=c.createGain();o.type="sine";o.frequency.value=mf(m);o.detune.value=(Math.random()-.5)*8;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.022,t+dur*.35);g.gain.linearRampToValueAtTime(0,t+dur+.4);
+    o.connect(g);g.connect(audio.master);o.start(t);o.stop(t+dur+.5);});
+}
+const ARP=[0,1,2,3,2,1];
+function scheduleLoop(t){
+  MEL.forEach(([b,m,d])=>voice(mf(m),t+b*BEAT+.012,Math.max(1.4,d*BEAT*2.2),.2,{vib:6}));
+  for(let e=0;e<LOOP_BEATS*2;e++){const b=e/2,[bass,up]=chordAt(b),tt=t+b*BEAT;
+    if(e%6===0)voice(mf(bass),tt,2.4,.13,{harm:.1});
+    else voice(mf(up[ARP[e%6]]),tt,1.3,.055,{type:"triangle",harm:.05});}
+  PROG.forEach(([s,n],i)=>{const nx=i+1<PROG.length?PROG[i+1][0]:LOOP_BEATS;pad(CH[n][1].slice(1),t+s*BEAT,(nx-s)*BEAT);});
+}
+function makeReverb(c){
+  const len=c.sampleRate*3,buf=c.createBuffer(2,len,c.sampleRate);
+  for(let ch=0;ch<2;ch++){const d=buf.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3);}
+  const cv=c.createConvolver();cv.buffer=buf;return cv;
+}
 function ensureSynth(){
   if(audio.ctx)return; const C=window.AudioContext||window.webkitAudioContext; if(!C)return;
-  audio.ctx=new C(); audio.master=audio.ctx.createGain(); audio.master.gain.value=.7; audio.master.connect(audio.ctx.destination);
-  audio.t0=audio.ctx.currentTime+.08; audio.next=audio.t0;
-  audio.timer=setInterval(()=>{if(audio.ctx.currentTime+1.5>audio.next){scheduleLoop(audio.next);audio.next+=LOOP;}},300);
+  const c=audio.ctx=new C(); audio.master=c.createGain(); audio.master.gain.value=.75;
+  const comp=c.createDynamicsCompressor(), dry=c.createGain(), wet=c.createGain(), rv=makeReverb(c);
+  dry.gain.value=.8; wet.gain.value=.45;
+  audio.master.connect(dry); audio.master.connect(rv); rv.connect(wet); dry.connect(comp); wet.connect(comp); comp.connect(c.destination);
+  audio.t0=c.currentTime+.1; audio.next=audio.t0;
+  audio.timer=setInterval(()=>{if(audio.ctx.currentTime+2>audio.next){scheduleLoop(audio.next);audio.next+=LOOP;}},300);
   scheduleLoop(audio.next); audio.next+=LOOP;
 }
 const fmt=s=>Math.floor(s/60)+":"+String(Math.floor(s%60)).padStart(2,"0");
