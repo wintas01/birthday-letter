@@ -51,6 +51,8 @@ h2{font-size:26px; line-height:1.15}
 .script{font-family:var(--f-script); color:var(--rose); font-size:26px; line-height:1; margin-top:-4px}
 .sub{color:var(--muted); font-size:13px; margin:-4px 0 0}
 .mascot{display:block}
+.me{display:block; width:112px; height:112px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 6px 18px rgba(150,80,100,.22)}
+.avatar img{width:100%; height:100%; object-fit:cover; display:block}
 .bob{animation:bob 2.4s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(-7px) rotate(-3deg)}}
 
@@ -248,7 +250,7 @@ h2{font-size:26px; line-height:1.15}
       <div class="to" id="letterTo">My Love,</div>
       <div class="divider" style="margin:0 auto">✿</div>
       <div class="body" id="letterBody"></div>
-      <div class="sign">with all my love,<span id="fromName">me</span></div>
+      <div class="sign"><i id="signoff" style="font-style:normal">with all my love,</i><span id="fromName">me</span></div>
     </article>
     <button class="btn ghost" id="replay">replay from the start ↺</button>
   </section>
@@ -268,15 +270,18 @@ h2{font-size:26px; line-height:1.15}
    EDIT EVERYTHING HERE ✏️  (names, messages, photos, song)
    ============================================================ */
 const CONFIG = {
-  hello: "Hello Cutieee",
+  hello: "Hello Favour ❤️😮‍💨",
   name: "My Love",                 // shown under "Happy Birthday" and on the letter
-  from: "your favourite human",    // signature at the end of the letter
+  from: "Jason ❤️",               // signature at the end of the letter
+  signoff: "With lots of love,",   // line above the signature
+  avatar: "photos/jason-cartoon.jpg",  // picture on the first screen ("" = bunny)
+  avatarFace: "photos/jason-face.jpg", // round picture on the card, pop-up and letter ("" = bunny)
   message: "Today is yours. A whole garden of wishes, for every laugh we've shared, every silly moment, and every reason you make the world brighter. HAPPYYYYY BIRTHDAYYYY CUTIEEEE",
   songUrl: "audio/song.mp3",       // an .mp3 in the audio folder or a direct link; "" = built-in romantic waltz version of Happy Birthday
   songNote: "i picked this one, because it always reminds me of you.",
   memories: [                      // photo: an image URL (or leave "" for a cute doodle)
-    { photo:"", doodle:"bouquet", caption:"the way you smile in every photo, I hope you know it lights up the room." },
-    { photo:"", doodle:"balloon", caption:"ordinary days with you have always been my favourite ones." },
+    { photo:"photos/memory-1.jpg", doodle:"bouquet", caption:"the way you smile in every photo, I hope you know it lights up the room." },
+    { photo:"photos/memory-2.jpg", doodle:"balloon", caption:"ordinary days with you have always been my favourite ones." },
     { photo:"", doodle:"cake",    caption:"thank you for showing up, for everything, every time." },
     { photo:"", doodle:"gift",    caption:"you are the best gift this year gave me." },
     { photo:"", doodle:"hat",     caption:"here's to more pictures, more trips, more us." }
@@ -288,10 +293,13 @@ const CONFIG = {
   ],
   popMsg: "thank you for being you, for the patience, the late night talks, the silly voice notes. I hope your day is as gentle and sweet as you've always made mine.",
   letter: [
-    "there's no card big enough for everything i'd like to say, so i made you a little garden, with a song, our pictures, and a few of my favourite wishes for the year ahead.",
-    "thank you for the small and unseen things. the way you check in, the jokes only we get, the quiet patience when i'm being too much. i noticed. i still notice.",
-    "i hope today you feel celebrated. i hope you eat something delicious that you didn't have to make, and someone tells you you're loved (you are). most of all, i hope this year ahead feels like the way you've always made me feel: safe, seen and so, so happy.",
-    "happy birthday, my favourite person. here's to you, today and every day after."
+    "There's no birthday card big enough to contain everything I'd like to say, so I decided to create something special for you — a little garden filled with memories, a song, pictures, and a few wishes from my heart.",
+    "First, thank you for being you. Thank you for the laughter, the random conversations, the little moments, the jokes, and even the things you probably don't realise mean so much to me.",
+    "I hope you know how special you are. Your presence makes certain days brighter, and having you in my life is something I genuinely appreciate. I may not always say it, but I notice the little things, and I never take them for granted.",
+    "On your birthday, I wish you happiness that doesn't depend on circumstances, peace that stays even on difficult days, opportunities that take you closer to your dreams, and countless reasons to smile.",
+    "May this new chapter bring you beautiful surprises, answered prayers, genuine people, unforgettable memories, and everything your heart has been quietly hoping for.",
+    "Please never forget how much you matter. You deserve to be celebrated, appreciated, respected and loved — not just today, but every single day.",
+    "Happy birthday, my Favour ❤️. Thank you for being part of my story. Here's to more laughter, more memories, more silly conversations and many more birthdays to celebrate."
   ]
 };
 
@@ -321,6 +329,10 @@ function mascot(item="heart", size=80){
   </svg>`;
 }
 document.querySelectorAll("[data-mascot]").forEach(el=>el.innerHTML=mascot(el.dataset.mascot,+el.dataset.size||80));
+// swap the bunny for your own picture where one is set in CONFIG
+function useImg(el,src,cls){const i=document.createElement("img");i.src=src;i.alt="";if(cls)i.className=cls;el.replaceChildren(i);}
+if(CONFIG.avatar) useImg(document.querySelector('[data-mascot="wave"]'),CONFIG.avatar,"me");
+if(CONFIG.avatarFace) document.querySelectorAll(".avatar[data-mascot]").forEach(el=>useImg(el,CONFIG.avatarFace));
 
 function flowerSVG(c1,c2,size=64){
   let p="";for(let i=0;i<6;i++){const a=i*60;p+=`<ellipse cx="32" cy="18" rx="7" ry="11" transform="rotate(${a} 32 30)" fill="${c1}" stroke="${INK}" stroke-width="1.5"/>`;}
@@ -337,6 +349,7 @@ $("#songNote").textContent=CONFIG.songNote;
 $("#popMsg").textContent=CONFIG.popMsg;
 $("#letterTo").textContent=CONFIG.name+",";
 $("#fromName").textContent=CONFIG.from;
+if(CONFIG.signoff) $("#signoff").textContent=CONFIG.signoff;
 $("#letterBody").innerHTML=CONFIG.letter.map(p=>`<p></p>`).join("");
 [...$("#letterBody").children].forEach((p,i)=>p.textContent=CONFIG.letter[i]);
 
